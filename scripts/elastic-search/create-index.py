@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 import yaml
+import json
 
 config = yaml.load(open('./config/ElasticSearch.yml', 'r'), Loader=yaml.Loader)
 
@@ -18,41 +19,15 @@ if es.ping():
 else:  
     print('No, I cannot connect to Elasticsearch!')
 
-index_name = "mdata-background-management"
-
-mappings = {
-    "properties": {  
-        "id": {  
-            "type": "long"  
-        },  
-        "name": {  
-            "type": "text",  
-            "fields": {  
-                "keyword": {  
-                    "type": "keyword",  
-                    "ignore_above": 256
-                }  
-            }  
-        },  
-        "status": {  
-            "type": "integer"  
-        },  
-        "createTS": {  
-            "type": "long"  
-        },  
-        "modifyTS": {  
-            "type": "long"  
-        }  
-    }
-}
-
-es.index()
+config = json.load(open('./data/mapper/mdata-meta-info.json', 'r'))
+index_name = config['index_name']
+mapping = config['mapping']
 
 if not es.indices.exists(index=index_name):
     res = es.indices.create(
         index=index_name,
         body={
-            'mappings': mappings
+            'mappings': mapping
         }
     )
     print(f'create {index_name}, result: {res}')
